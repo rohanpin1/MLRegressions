@@ -1,17 +1,13 @@
-import numpy as np
-import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
-from sklearn.tree import DecisionTreeRegressor
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.neighbors import KNeighborsRegressor 
-from sklearn.ensemble import GradientBoostingRegressor
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-import joblib
+from PackageClass import ModelImports 
+from LinearRegression import LinearRegression
+from DecisionTree import DecisionTree
+from RandomForest import RandomForest
+from KNN import KNN
+from GradientBoosting import GradientBoosting
 
+model_libs = ModelImports.get_imports()
 
-
-data = pd.read_csv('./Data Set/50_Startups.csv')
+data = model_libs['pandas'].read_csv('./Data Set/50_Startups.csv')
 print(data.isnull().sum())
 print(data.describe())
 
@@ -25,51 +21,28 @@ X = data[['R&D Spend', 'Administration', 'Marketing Spend']]
 y = data['Profit']
 
 #20% of the data will be used for testing, and the remaining 80% will be used for training.
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = model_libs['train_test_split'](X, y, test_size=0.2, random_state=42)
 
 # Linear Regression Model
-linear_model = LinearRegression()
-linear_model.fit(X_train, y_train)
-
-# Predictions
-y_pred_linear = linear_model.predict(X_test)
-
+y_pred_linear = LinearRegression.get_linear_regression(X_train, y_train).predict(X_test)
 
 # Decision Tree Model
-tree_model = DecisionTreeRegressor(random_state=42)
-tree_model.fit(X_train, y_train)
-
-# Predictions
-y_pred_tree = tree_model.predict(X_test)
-
+y_pred_tree = DecisionTree.get_decision_tree(X_train,y_train).predict(X_test)
 
 # Random Forest Model
-forest_model = RandomForestRegressor(n_estimators=100, random_state=42)
-forest_model.fit(X_train, y_train)
-
-# Predictions
-y_pred_forest = forest_model.predict(X_test)
+y_pred_forest = RandomForest.get_random_forest(X_train,y_train).predict(X_test)
 
 # KNN Model
-knn_model = KNeighborsRegressor(n_neighbors=7);
-knn_model.fit(X_train, y_train)
-
-# Predictions
-y_pred_knn = knn_model.predict(X_test)
-
+y_pred_knn = KNN.get_knn(X_train,y_train).predict(X_test)
 
 # Gradient Boosting
-gb_model = GradientBoostingRegressor(n_estimators=100,learning_rate=0.1,max_depth=3,random_state=42)
-gb_model.fit(X_train,y_train)
-
-# Predictions
-y_pred_gb = gb_model.predict(X_test)
+y_pred_gb = GradientBoosting.get_gradientboosting(X_train,y_train).predict(X_test)
 
 def evaluate_model(y_test, y_pred):
-    mae = mean_absolute_error(y_test, y_pred)
-    mse = mean_squared_error(y_test, y_pred)
-    rmse = np.sqrt(mse)
-    r2 = r2_score(y_test, y_pred)
+    mae = model_libs['mean_absolute_error'](y_test, y_pred)
+    mse = model_libs['mean_squared_error'](y_test, y_pred)
+    rmse = model_libs['numpy'].sqrt(mse)
+    r2 = model_libs['r2_score'](y_test, y_pred)
     return mae, mse, rmse, r2
 
 
@@ -94,9 +67,9 @@ mae_gb, mse_gb, rmse_gb, r2_gb = evaluate_model(y_test,y_pred_gb)
 print("Gradient Boosting - MAE:", mae_gb, "MSE:",mse_gb,"RMSE:",rmse_gb,"R2:", r2_gb, "Performance:", r2_gb*100)
 
 
-joblib.dump(linear_model, './Train Model/finalised_model.pkl')
+model_libs['joblib'].dump(LinearRegression.get_linear_regression(X_train, y_train), './Train Model/finalised_model.pkl')
 
-loaded_model = joblib.load('./Train Model/finalised_model.pkl')
+loaded_model = model_libs['joblib'].load('./Train Model/finalised_model.pkl')
 
 predictions = loaded_model.predict(X_test)
 print(predictions)
